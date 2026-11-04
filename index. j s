@@ -1,0 +1,97 @@
+const { Client, LocalAuth } = require('whatsapp-web.js');
+const qrcode = require('qrcode-terminal');
+
+const client = new Client({
+    authStrategy: new LocalAuth()
+});
+
+client.on('qr', (qr) => {
+    qrcode.generate(qr, {small: true});
+});
+
+client.on('ready', () => {
+    console.log('Bot is ready!');
+});
+
+const hikam = [
+    "الصبر مفتاح الفرج",
+    "من جد وجد ومن زرع حصد",
+    "العقل زينة",
+    "خير الكلام ما قل ودل",
+    "الصديق وقت الضيق",
+    "لا تؤجل عمل اليوم الى الغد",
+    "القناعة كنز لا يفنى"
+];
+
+const nokat = [
+    "مرة واحد غبي سألوه: بتفهم في الكمبيوتر؟ قال ليهم ايوة بفهم اضغط على اي زرار 😂",
+    "مرة واحد كسلان قال لصاحبو: عليك الله لو صحيت صحيني 😂",
+    "محشش قال لصاحبو: امبارح حلمت اني بمشي، صحيت لقيت نفسي لسه نايم 😂"
+];
+
+client.on('message', async (msg) => {
+    const body = msg.body.trim();
+    const chat = await msg.getChat();
+
+    // 1. مضاد الروابط
+    if (body.includes('http://') || body.includes('https://') || body.includes('www.') || body.includes('.com')) {
+        // لو في قروب بس
+        if (chat.isGroup) {
+            try {
+                await msg.delete(true);
+                msg.reply('🚫 ممنوع ارسال الروابط في القروب يا بطل!');
+                return;
+            } catch (e) {
+                msg.reply('🚫 ممنوع الروابط! خلي البوت مشرف عشان يمسحها');
+                return;
+            }
+        }
+    }
+
+    // 2. حكمة
+    if (body === '!حكمة' || body === '!حكمه' || body === '!hikma') {
+        const random = hikam[Math.floor(Math.random() * hikam.length)];
+        msg.reply('📜 *حكمة اليوم:*\n\n' + random);
+    }
+
+    // 3. زوجتي
+    if (body === '!زوجتي' || body === '!زوجي' || body === '!زواج') {
+        const mentions = await msg.getMentions();
+        if (mentions.length > 0) {
+            const wife = mentions[0].pushname || mentions[0].number;
+            msg.reply('❤️ مبروك الزواج!\n\n💍 ' + msg._data.notifyName + ' ❤️ ' + wife + '\n\nالله يسعدكم ويديم المحبة 😍');
+        } else {
+            msg.reply('عشان تتزوج اعمل كده:\n\n!زوجتي @منشن البت\n\nمثال: !زوجتي @احمد');
+        }
+    }
+
+    // 4. نكتة
+    if (body === '!نكتة' || body === '!نكته') {
+        const random = nokat[Math.floor(Math.random() * nokat.length)];
+        msg.reply('😂 ' + random);
+    }
+
+    // 5. قائمة الاوامر
+    if (body === '!اوامر' || body === '!الاوامر' || body === '!menu' || body === '!help') {
+        msg.reply(`🤖 *قائمة اوامر البوت:*
+
+📜 *!حكمة* - يرسل ليك حكمة
+😂 *!نكتة* - يرسل ليك نكتة
+💍 *!زوجتي @منشن* - يزوجك
+🚫 *مضاد الروابط* - شغال تلقائي في القروبات
+👋 *!hi* - يسلم عليك
+🏓 *!ping* - يرد عليك pong
+
+جرب اي واحد فيهم!`);
+    }
+
+    if (body === '!hi') {
+        msg.reply('اهلا بيك! انا البوت بتاعك 🔥 اكتب !اوامر عشان تشوف اوامري');
+    }
+
+    if (body === '!ping') {
+        msg.reply('pong 🏓');
+    }
+});
+
+client.initialize();
