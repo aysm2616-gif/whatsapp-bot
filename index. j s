@@ -2,15 +2,19 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 
 const client = new Client({
-    authStrategy: new LocalAuth()
+    authStrategy: new LocalAuth(),
+    puppeteer: {
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+    }
 });
 
 client.on('qr', (qr) => {
-    qrcode.generate(qr, {small: true});
+    qrcode.generate(qr, { small: true });
 });
 
 client.on('ready', () => {
-    console.log('Bot is ready!');
+    console.log('البوت شغال ✅');
 });
 
 const hikam = [
@@ -19,13 +23,13 @@ const hikam = [
     "العقل زينة",
     "خير الكلام ما قل ودل",
     "الصديق وقت الضيق",
-    "لا تؤجل عمل اليوم الى الغد",
-    "القناعة كنز لا يفنى"
+    "القناعة كنز لا يفنى",
+    "لا تؤجل عمل اليوم الى الغد"
 ];
 
 const nokat = [
-    "مرة واحد غبي سألوه: بتفهم في الكمبيوتر؟ قال ليهم ايوة بفهم اضغط على اي زرار 😂",
     "مرة واحد كسلان قال لصاحبو: عليك الله لو صحيت صحيني 😂",
+    "مرة واحد غبي سألوه بتفهم في الكمبيوتر؟ قال ايوة بفهم اضغط على اي زرار 😂",
     "محشش قال لصاحبو: امبارح حلمت اني بمشي، صحيت لقيت نفسي لسه نايم 😂"
 ];
 
@@ -33,13 +37,12 @@ client.on('message', async (msg) => {
     const body = msg.body.trim();
     const chat = await msg.getChat();
 
-    // 1. مضاد الروابط
+    // 1. مضاد الروابط - شغال تلقائي
     if (body.includes('http://') || body.includes('https://') || body.includes('www.') || body.includes('.com')) {
-        // لو في قروب بس
         if (chat.isGroup) {
             try {
                 await msg.delete(true);
-                msg.reply('🚫 ممنوع ارسال الروابط في القروب يا بطل!');
+                msg.reply('🚫 ممنوع ارسال الروابط في القروب!');
                 return;
             } catch (e) {
                 msg.reply('🚫 ممنوع الروابط! خلي البوت مشرف عشان يمسحها');
@@ -50,48 +53,47 @@ client.on('message', async (msg) => {
 
     // 2. حكمة
     if (body === '!حكمة' || body === '!حكمه' || body === '!hikma') {
-        const random = hikam[Math.floor(Math.random() * hikam.length)];
-        msg.reply('📜 *حكمة اليوم:*\n\n' + random);
+        const r = hikam[Math.floor(Math.random() * hikam.length)];
+        msg.reply('📜 *حكمة اليوم:*\n\n' + r);
     }
 
     // 3. زوجتي
-    if (body === '!زوجتي' || body === '!زوجي' || body === '!زواج') {
+    if (body.startsWith('!زوجتي')) {
         const mentions = await msg.getMentions();
         if (mentions.length > 0) {
             const wife = mentions[0].pushname || mentions[0].number;
-            msg.reply('❤️ مبروك الزواج!\n\n💍 ' + msg._data.notifyName + ' ❤️ ' + wife + '\n\nالله يسعدكم ويديم المحبة 😍');
+            msg.reply('❤️ مبروك الزواج!\n\n💍 ' + msg._data.notifyName + ' ❤️ ' + wife + '\n\nالله يسعدكم 😍');
         } else {
-            msg.reply('عشان تتزوج اعمل كده:\n\n!زوجتي @منشن البت\n\nمثال: !زوجتي @احمد');
+            msg.reply('عشان تتزوج اكتب:\n!زوجتي @منشن البت');
         }
     }
 
     // 4. نكتة
     if (body === '!نكتة' || body === '!نكته') {
-        const random = nokat[Math.floor(Math.random() * nokat.length)];
-        msg.reply('😂 ' + random);
+        const r = nokat[Math.floor(Math.random() * nokat.length)];
+        msg.reply('😂 ' + r);
     }
 
-    // 5. قائمة الاوامر
-    if (body === '!اوامر' || body === '!الاوامر' || body === '!menu' || body === '!help') {
+    // 5. الاوامر
+    if (body === '!اوامر' || body === '!menu' || body === '!help') {
         msg.reply(`🤖 *قائمة اوامر البوت:*
 
-📜 *!حكمة* - يرسل ليك حكمة
-😂 *!نكتة* - يرسل ليك نكتة
-💍 *!زوجتي @منشن* - يزوجك
-🚫 *مضاد الروابط* - شغال تلقائي في القروبات
-👋 *!hi* - يسلم عليك
-🏓 *!ping* - يرد عليك pong
-
-جرب اي واحد فيهم!`);
+📜 !حكمة - حكمة
+😂 !نكتة - نكتة
+💍 !زوجتي @منشن - يزوجك
+🚫 مضاد الروابط - شغال تلقائي
+👋 !hi - يسلم عليك
+🏓 !ping - pong`);
     }
 
     if (body === '!hi') {
-        msg.reply('اهلا بيك! انا البوت بتاعك 🔥 اكتب !اوامر عشان تشوف اوامري');
+        msg.reply('اهلا بيك 🔥 اكتب !اوامر');
     }
 
     if (body === '!ping') {
         msg.reply('pong 🏓');
     }
 });
+
 
 client.initialize();
